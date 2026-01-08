@@ -1,0 +1,33 @@
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/upgrade/
+
+# Build
+dist/
+build/
+
+# Misc
+*.bak
+*.swp
+*.swo
+*~

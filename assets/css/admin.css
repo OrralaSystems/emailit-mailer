@@ -1,0 +1,497 @@
+/**
+ * EmailIT Mailer - Admin Styles
+ * 
+ * @package EmailIT_Mailer
+ * @since 1.0.0
+ */
+
+/* ========================================
+   General Layout
+   ======================================== */
+
+.emailit-admin-wrap {
+    max-width: 1200px;
+}
+
+.emailit-admin-container {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.emailit-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.emailit-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+@media screen and (max-width: 1200px) {
+    .emailit-admin-container {
+        flex-direction: column;
+    }
+
+    .emailit-sidebar {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   Cards
+   ======================================== */
+
+.emailit-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.emailit-card h2,
+.emailit-card h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+/* ========================================
+   Statistics Card
+   ======================================== */
+
+.emailit-stats-card {
+    text-align: center;
+}
+
+.emailit-stat {
+    display: inline-block;
+    width: 45%;
+    margin: 10px 2%;
+    padding: 15px 10px;
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+.emailit-stat-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.2;
+}
+
+.emailit-stat-label {
+    display: block;
+    font-size: 12px;
+    color: #646970;
+    margin-top: 5px;
+    text-transform: uppercase;
+}
+
+.emailit-stat-success .emailit-stat-number {
+    color: #00a32a;
+}
+
+.emailit-stat-error .emailit-stat-number {
+    color: #d63638;
+}
+
+/* ========================================
+   Links List
+   ======================================== */
+
+.emailit-links-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.emailit-links-list li {
+    margin: 0;
+    padding: 0;
+}
+
+.emailit-links-list a {
+    display: block;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    text-decoration: none;
+    color: #2271b1;
+    transition: color 0.2s;
+}
+
+.emailit-links-list a:hover {
+    color: #135e96;
+}
+
+.emailit-links-list a .dashicons {
+    margin-right: 8px;
+    vertical-align: middle;
+    color: #646970;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.emailit-links-list li:last-child a {
+    border-bottom: none;
+}
+
+/* ========================================
+   Logs Page
+   ======================================== */
+
+.emailit-logs-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.emailit-logs-filters form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.emailit-logs-filters select,
+.emailit-logs-filters input[type="search"] {
+    height: 30px;
+}
+
+.emailit-logs-actions {
+    flex-shrink: 0;
+}
+
+.emailit-logs-summary {
+    margin-bottom: 15px;
+}
+
+.emailit-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    background: #f0f0f1;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #1d2327;
+    margin-right: 8px;
+}
+
+.emailit-badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.emailit-badge-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ========================================
+   Logs Table
+   ======================================== */
+
+.emailit-logs-table {
+    border-collapse: collapse;
+}
+
+.emailit-logs-table th,
+.emailit-logs-table td {
+    vertical-align: middle;
+}
+
+.emailit-logs-table .column-id {
+    text-align: center;
+    color: #646970;
+}
+
+.emailit-logs-table .column-to code {
+    background: #f0f0f1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.emailit-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.emailit-status .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.emailit-status-success {
+    color: #00a32a;
+}
+
+.emailit-status-error {
+    color: #d63638;
+}
+
+.emailit-response-text {
+    color: #646970;
+    font-size: 12px;
+}
+
+.emailit-view-response {
+    margin-left: 5px !important;
+    font-size: 12px !important;
+}
+
+/* ========================================
+   Modal
+   ======================================== */
+
+.emailit-modal {
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emailit-modal-content {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 4px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.emailit-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #646970;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.emailit-modal-close:hover {
+    color: #1d2327;
+}
+
+.emailit-modal-content h3 {
+    margin-top: 0;
+    padding-right: 30px;
+}
+
+.emailit-modal-content pre {
+    background: #f6f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* ========================================
+   Test Email Section
+   ======================================== */
+
+#emailit_test_result {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+#emailit_test_result.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+#emailit_test_result.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+#emailit_test_result.loading {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* ========================================
+   API Key Toggle
+   ======================================== */
+
+#emailit-toggle-api-key {
+    margin-left: 10px;
+}
+
+/* ========================================
+   Form Improvements
+   ======================================== */
+
+.emailit-admin-wrap .form-table th {
+    width: 220px;
+    padding-top: 15px;
+}
+
+.emailit-admin-wrap .form-table td {
+    padding-top: 10px;
+}
+
+.emailit-admin-wrap .form-table input.regular-text {
+    width: 100%;
+    max-width: 400px;
+}
+
+.emailit-admin-wrap .form-table input.small-text {
+    width: 80px;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media screen and (max-width: 782px) {
+    .emailit-logs-filters {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .emailit-logs-filters form {
+        width: 100%;
+    }
+
+    .emailit-logs-filters input[type="search"] {
+        width: 100%;
+    }
+
+    .emailit-stat {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .emailit-admin-wrap .form-table th {
+        width: auto;
+    }
+}
+
+/* ========================================
+   Button States
+   ======================================== */
+
+.button:disabled,
+.button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+
+@keyframes emailit-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.emailit-loading .dashicons {
+    animation: emailit-spin 1s linear infinite;
+}
+
+/* ========================================
+   Toggle Switch
+   ======================================== */
+
+.emailit-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    vertical-align: middle;
+}
+
+.emailit-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.emailit-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.emailit-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.emailit-toggle-switch input:checked+.emailit-toggle-slider {
+    background-color: #00a32a;
+}
+
+.emailit-toggle-switch input:focus+.emailit-toggle-slider {
+    box-shadow: 0 0 0 2px rgba(0, 163, 42, 0.3);
+}
+
+.emailit-toggle-switch input:checked+.emailit-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.emailit-toggle-label {
+    display: inline-block;
+    margin-left: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.emailit-toggle-label.enabled {
+    color: #00a32a;
+}
+
+.emailit-toggle-label.disabled {
+    color: #d63638;
+}
