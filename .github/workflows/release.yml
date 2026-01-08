@@ -47,17 +47,17 @@ jobs:
           body: |
             ## 📧 EmailIT Mailer v${{ steps.get_version.outputs.VERSION }}
             
-            ### Instalación
-            1. Descarga el archivo `emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip`
-            2. Ve a **Plugins → Añadir nuevo → Subir plugin**
-            3. Sube el archivo ZIP y actívalo
-            4. Configura en **Configuración → EmailIT Mailer**
+            ### Installation
+            1. Download the `emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip` file
+            2. Go to **Plugins → Add New → Upload Plugin**
+            3. Upload the ZIP file and activate it
+            4. Configure at **Settings → EmailIT Mailer**
             
             ### Changelog
-            Ver [readme.txt](https://github.com/${{ github.repository }}/blob/master/readme.txt) para el changelog completo.
+            See [readme.txt](https://github.com/${{ github.repository }}/blob/master/readme.txt) for the full changelog.
             
             ---
-            Plugin desarrollado por [Orrala Systems](https://orralasystems.com)
+            Plugin developed by [Orrala Systems](https://orralasystems.com)
           files: |
             emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip
           draft: false
