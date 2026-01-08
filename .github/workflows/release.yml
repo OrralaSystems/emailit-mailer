@@ -1,0 +1,66 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create plugin directory
+        run: |
+          mkdir -p release/emailit-mailer
+          
+          # Copy plugin files
+          cp emailit-mailer.php release/emailit-mailer/
+          cp readme.txt release/emailit-mailer/
+          cp uninstall.php release/emailit-mailer/
+          
+          # Copy directories
+          cp -r includes release/emailit-mailer/
+          cp -r assets release/emailit-mailer/
+          
+          # Don't include development files in the release
+          # .git, .github, README.md (GitHub specific), etc. are excluded
+      
+      - name: Create ZIP file
+        run: |
+          cd release
+          zip -r ../emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip emailit-mailer
+          cd ..
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: EmailIT Mailer v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## 📧 EmailIT Mailer v${{ steps.get_version.outputs.VERSION }}
+            
+            ### Instalación
+            1. Descarga el archivo `emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip`
+            2. Ve a **Plugins → Añadir nuevo → Subir plugin**
+            3. Sube el archivo ZIP y actívalo
+            4. Configura en **Configuración → EmailIT Mailer**
+            
+            ### Changelog
+            Ver [readme.txt](https://github.com/${{ github.repository }}/blob/master/readme.txt) para el changelog completo.
+            
+            ---
+            Plugin desarrollado por [Orrala Systems](https://orralasystems.com)
+          files: |
+            emailit-mailer-${{ steps.get_version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
