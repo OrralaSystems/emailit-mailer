@@ -1,6 +1,6 @@
 <?php
 /**
- * Clase de registro de correos
+ * Email logging class
  *
  * @package EmailIT_Mailer
  * @since 1.0.0
@@ -8,35 +8,35 @@
 
 namespace EmailIT;
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
- * Clase Logger
+ * Logger Class
  * 
- * Gestiona el registro de correos enviados en la base de datos
+ * Manages email logging in the database
  */
 class Logger
 {
 
     /**
-     * Nombre de la tabla de logs (sin prefijo)
+     * Logs table name (without prefix)
      *
      * @var string
      */
     const TABLE_NAME = 'emailit_logs';
 
     /**
-     * Instancia de Settings
+     * Settings instance
      *
      * @var Settings
      */
     private $settings;
 
     /**
-     * Nombre completo de la tabla
+     * Full table name
      *
      * @var string
      */
@@ -45,7 +45,7 @@ class Logger
     /**
      * Constructor
      *
-     * @param Settings $settings Instancia de configuraciones
+     * @param Settings $settings Settings instance
      */
     public function __construct(Settings $settings)
     {
@@ -54,12 +54,12 @@ class Logger
         $this->settings = $settings;
         $this->table_name = $wpdb->prefix . self::TABLE_NAME;
 
-        // Programar limpieza automática
+        // Schedule automatic cleanup
         $this->schedule_cleanup();
     }
 
     /**
-     * Crea la tabla de logs en la base de datos
+     * Creates the logs table in the database
      */
     public function create_table()
     {
@@ -84,12 +84,12 @@ class Logger
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
 
-        // Guardar versión del esquema
+        // Save schema version
         update_option('emailit_db_version', EMAILIT_VERSION);
     }
 
     /**
-     * Elimina la tabla de logs
+     * Drops the logs table
      */
     public function drop_table()
     {
@@ -99,18 +99,18 @@ class Logger
     }
 
     /**
-     * Registra un envío de correo
+     * Logs an email send
      *
-     * @param string $to_email   Email del destinatario
-     * @param string $subject    Asunto del correo
-     * @param string $status     Estado: 'sent' o 'failed'
-     * @param string $response   Respuesta de la API o mensaje de error
-     * @param array  $headers    Headers del correo (opcional)
-     * @return int|false ID del registro insertado o false si falló
+     * @param string $to_email   Recipient email
+     * @param string $subject    Email subject
+     * @param string $status     Status: 'sent' or 'failed'
+     * @param string $response   API response or error message
+     * @param array  $headers    Email headers (optional)
+     * @return int|false Inserted record ID or false if failed
      */
     public function log(string $to_email, string $subject, string $status, string $response = '', array $headers = array())
     {
-        // Verificar si el logging está habilitado
+        // Check if logging is enabled
         if (!$this->settings->get('enable_logging')) {
             return false;
         }
@@ -137,34 +137,34 @@ class Logger
 
         $log_id = $wpdb->insert_id;
 
-        // Limpiar logs antiguos si exceden el máximo
+        // Cleanup old logs if exceeding maximum
         $this->maybe_cleanup_excess_logs();
 
         return $log_id;
     }
 
     /**
-     * Registra un envío exitoso
+     * Logs a successful send
      *
-     * @param string $to_email Email del destinatario
-     * @param string $subject  Asunto del correo
-     * @param array  $response Respuesta de la API
-     * @param array  $headers  Headers del correo
+     * @param string $to_email Recipient email
+     * @param string $subject  Email subject
+     * @param array  $response API response
+     * @param array  $headers  Email headers
      * @return int|false
      */
     public function log_success(string $to_email, string $subject, array $response = array(), array $headers = array())
     {
-        $response_text = !empty($response) ? wp_json_encode($response) : __('Enviado exitosamente', 'emailit-mailer');
+        $response_text = !empty($response) ? wp_json_encode($response) : __('Sent successfully', 'emailit-mailer');
         return $this->log($to_email, $subject, 'sent', $response_text, $headers);
     }
 
     /**
-     * Registra un envío fallido
+     * Logs a failed send
      *
-     * @param string $to_email      Email del destinatario
-     * @param string $subject       Asunto del correo
-     * @param string $error_message Mensaje de error
-     * @param array  $headers       Headers del correo
+     * @param string $to_email      Recipient email
+     * @param string $subject       Email subject
+     * @param string $error_message Error message
+     * @param array  $headers       Email headers
      * @return int|false
      */
     public function log_failure(string $to_email, string $subject, string $error_message, array $headers = array())
@@ -173,10 +173,10 @@ class Logger
     }
 
     /**
-     * Obtiene los logs con paginación
+     * Gets logs with pagination
      *
-     * @param array $args Argumentos de consulta
-     * @return array Array con 'items' y 'total'
+     * @param array $args Query arguments
+     * @return array Array with 'items' and 'total'
      */
     public function get_logs(array $args = array())
     {
@@ -193,12 +193,12 @@ class Logger
 
         $args = wp_parse_args($args, $defaults);
 
-        // Sanitizar parámetros de ordenación
+        // Sanitize order parameters
         $allowed_orderby = array('id', 'to_email', 'subject', 'status', 'created_at');
         $orderby = in_array($args['orderby'], $allowed_orderby, true) ? $args['orderby'] : 'created_at';
         $order = 'ASC' === strtoupper($args['order']) ? 'ASC' : 'DESC';
 
-        // Construir cláusula WHERE
+        // Build WHERE clause
         $where_clauses = array('1=1');
         $where_values = array();
 
@@ -216,7 +216,7 @@ class Logger
 
         $where = implode(' AND ', $where_clauses);
 
-        // Query para contar total
+        // Query to count total
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if (!empty($where_values)) {
             // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -226,12 +226,12 @@ class Logger
             $total = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name} WHERE {$where}");
         }
 
-        // Calcular offset
+        // Calculate offset
         $per_page = absint($args['per_page']);
         $page = absint($args['page']);
         $offset = ($page - 1) * $per_page;
 
-        // Query para obtener items
+        // Query to get items
         $query = "SELECT * FROM {$this->table_name} WHERE {$where} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
 
         if (!empty($where_values)) {
@@ -251,9 +251,9 @@ class Logger
     }
 
     /**
-     * Obtiene un log específico por ID
+     * Gets a specific log by ID
      *
-     * @param int $id ID del log
+     * @param int $id Log ID
      * @return object|null
      */
     public function get_log(int $id)
@@ -270,13 +270,13 @@ class Logger
     }
 
     /**
-     * Elimina logs antiguos basándose en la configuración de retención
+     * Deletes old logs based on retention configuration
      */
     public function cleanup_old_logs()
     {
         $retention_days = $this->settings->get('log_retention_days');
 
-        // 0 significa retención indefinida
+        // 0 means indefinite retention
         if (empty($retention_days)) {
             return;
         }
@@ -295,7 +295,7 @@ class Logger
     }
 
     /**
-     * Limpia logs si exceden el máximo configurado
+     * Cleans up logs if exceeding maximum configured
      */
     private function maybe_cleanup_excess_logs()
     {
@@ -320,9 +320,9 @@ class Logger
     }
 
     /**
-     * Elimina todos los logs
+     * Deletes all logs
      *
-     * @return int Número de filas eliminadas
+     * @return int Number of deleted rows
      */
     public function clear_all_logs()
     {
@@ -333,7 +333,7 @@ class Logger
     }
 
     /**
-     * Programa la limpieza automática de logs
+     * Schedules automatic log cleanup
      */
     private function schedule_cleanup()
     {
@@ -345,7 +345,7 @@ class Logger
     }
 
     /**
-     * Obtiene estadísticas de los logs
+     * Gets log statistics
      *
      * @return array
      */
@@ -372,7 +372,7 @@ class Logger
             )
         );
 
-        // Últimas 24 horas
+        // Last 24 hours
         $yesterday = gmdate('Y-m-d H:i:s', strtotime('-24 hours'));
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -392,7 +392,7 @@ class Logger
     }
 
     /**
-     * Obtiene el nombre de la tabla
+     * Gets the table name
      *
      * @return string
      */
@@ -402,7 +402,7 @@ class Logger
     }
 
     /**
-     * Verifica si la tabla existe
+     * Checks if the table exists
      *
      * @return bool
      */

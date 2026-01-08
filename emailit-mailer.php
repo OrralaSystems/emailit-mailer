@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Emailit API WordPress Plugin by Orrala Systems
  * Plugin URI: https://orralasystems.com/plugins/emailit-mailer
- * Description: Reemplaza wp_mail() para enviar correos a través de la API de EmailIT con autenticación por API Key. Incluye panel de configuración, logs de envío y herramienta de prueba.
- * Version: 1.1.0
+ * Description: Replaces wp_mail() to send emails through the EmailIT API with API Key authentication. Includes settings panel, email logs, and test email functionality.
+ * Version: 1.2.0
  * Author: Orrala Systems
  * Author URI: https://orralasystems.com
  * License: GPL-2.0+
@@ -14,20 +14,20 @@
  * Requires PHP: 7.4
  */
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Constantes del plugin
-define('EMAILIT_VERSION', '1.1.0');
+// Plugin constants
+define('EMAILIT_VERSION', '1.2.0');
 define('EMAILIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EMAILIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('EMAILIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('EMAILIT_API_ENDPOINT', 'https://api.emailit.com/v1/emails');
 
 /**
- * Autoloader para las clases del plugin
+ * Autoloader for plugin classes
  */
 spl_autoload_register(function ($class) {
     $prefix = 'EmailIT\\';
@@ -47,55 +47,55 @@ spl_autoload_register(function ($class) {
 });
 
 /**
- * Clase principal del plugin
+ * Main plugin class
  */
 final class EmailIT_Mailer
 {
 
     /**
-     * Instancia única del plugin
+     * Single instance of the plugin
      *
      * @var EmailIT_Mailer
      */
     private static $instance = null;
 
     /**
-     * Instancia de Settings
+     * Settings instance
      *
      * @var EmailIT\Settings
      */
     public $settings;
 
     /**
-     * Instancia de API
+     * API instance
      *
      * @var EmailIT\API
      */
     public $api;
 
     /**
-     * Instancia de Logger
+     * Logger instance
      *
      * @var EmailIT\Logger
      */
     public $logger;
 
     /**
-     * Instancia de Admin
+     * Admin instance
      *
      * @var EmailIT\Admin
      */
     public $admin;
 
     /**
-     * Instancia de Mailer
+     * Mailer instance
      *
      * @var EmailIT\Mailer
      */
     public $mailer;
 
     /**
-     * Obtiene la instancia única del plugin (Singleton)
+     * Get the singleton instance (Singleton pattern)
      *
      * @return EmailIT_Mailer
      */
@@ -108,7 +108,7 @@ final class EmailIT_Mailer
     }
 
     /**
-     * Constructor privado
+     * Private constructor
      */
     private function __construct()
     {
@@ -118,7 +118,7 @@ final class EmailIT_Mailer
     }
 
     /**
-     * Carga las dependencias del plugin
+     * Load plugin dependencies
      */
     private function load_dependencies()
     {
@@ -130,7 +130,7 @@ final class EmailIT_Mailer
     }
 
     /**
-     * Inicializa los componentes del plugin
+     * Initialize plugin components
      */
     private function init_components()
     {
@@ -142,76 +142,76 @@ final class EmailIT_Mailer
     }
 
     /**
-     * Registra los hooks del plugin
+     * Register plugin hooks
      */
     private function init_hooks()
     {
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
 
-        // Agregar enlace de configuración en la lista de plugins
+        // Add settings link on plugins page
         add_filter('plugin_action_links_' . EMAILIT_PLUGIN_BASENAME, array($this, 'add_settings_link'));
     }
 
     /**
-     * Activación del plugin
+     * Plugin activation
      */
     public function activate()
     {
-        // Crear tabla de logs
+        // Create logs table
         $this->logger->create_table();
 
-        // Establecer opciones por defecto
+        // Set default options
         $this->settings->set_defaults();
 
-        // Limpiar cache de rewrite rules
+        // Flush rewrite rules cache
         flush_rewrite_rules();
     }
 
     /**
-     * Desactivación del plugin
+     * Plugin deactivation
      */
     public function deactivate()
     {
-        // Limpiar eventos programados
+        // Clear scheduled events
         wp_clear_scheduled_hook('emailit_cleanup_logs');
     }
 
     /**
-     * Agrega enlace de configuración en la página de plugins
+     * Add settings link on plugins page
      *
-     * @param array $links Enlaces existentes
-     * @return array Enlaces modificados
+     * @param array $links Existing links
+     * @return array Modified links
      */
     public function add_settings_link($links)
     {
         $settings_link = sprintf(
             '<a href="%s">%s</a>',
             admin_url('options-general.php?page=emailit-settings'),
-            __('Configuración', 'emailit-mailer')
+            __('Settings', 'emailit-mailer')
         );
         array_unshift($links, $settings_link);
         return $links;
     }
 
     /**
-     * Prevenir clonación
+     * Prevent cloning
      */
     private function __clone()
     {
     }
 
     /**
-     * Prevenir deserialización
+     * Prevent unserialization
      */
     public function __wakeup()
     {
-        throw new \Exception('No se puede deserializar una instancia singleton.');
+        throw new \Exception('Cannot unserialize a singleton instance.');
     }
 }
 
 /**
- * Función para obtener la instancia del plugin
+ * Function to get the plugin instance
  *
  * @return EmailIT_Mailer
  */
@@ -220,54 +220,54 @@ function emailit_mailer()
     return EmailIT_Mailer::get_instance();
 }
 
-// Inicializar el plugin
+// Initialize the plugin
 add_action('plugins_loaded', 'emailit_mailer');
 
 /**
- * Reemplazo de wp_mail() usando la función pluggable
- * Esta función se define antes de que WordPress cargue la función nativa
+ * wp_mail() replacement using pluggable function
+ * This function is defined before WordPress loads the native function
  */
 if (!function_exists('wp_mail')) {
     /**
-     * Envía un correo electrónico, similar a la función nativa de WordPress.
+     * Sends an email, similar to the native WordPress function.
      *
-     * @param string|string[] $to          Dirección(es) de correo del destinatario.
-     * @param string          $subject     Asunto del correo.
-     * @param string          $message     Contenido del mensaje.
-     * @param string|string[] $headers     Cabeceras adicionales opcionales.
-     * @param string|string[] $attachments Archivos adjuntos opcionales.
-     * @return bool Si el correo fue enviado exitosamente.
+     * @param string|string[] $to          Recipient email address(es).
+     * @param string          $subject     Email subject.
+     * @param string          $message     Message content.
+     * @param string|string[] $headers     Optional additional headers.
+     * @param string|string[] $attachments Optional file attachments.
+     * @return bool Whether the email was sent successfully.
      */
     function wp_mail($to, $subject, $message, $headers = '', $attachments = array())
     {
-        // Verificar si el plugin está activo y configurado
+        // Check if the plugin is active and configured
         if (!class_exists('EmailIT_Mailer')) {
-            // Fallback: cargar la función nativa de WordPress
+            // Fallback: load the native WordPress function
             require_once ABSPATH . WPINC . '/pluggable.php';
             return \wp_mail($to, $subject, $message, $headers, $attachments);
         }
 
         $plugin = emailit_mailer();
 
-        // Verificar si el plugin está habilitado
+        // Check if the plugin is enabled
         if (!$plugin->settings->is_enabled()) {
-            // Plugin deshabilitado, usar PHPMailer nativo de WordPress
+            // Plugin disabled, use native WordPress PHPMailer
             require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
             require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
             require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
             require_once ABSPATH . WPINC . '/pluggable.php';
 
-            // Usar la función de envío de PHPMailer directamente
+            // Use PHPMailer send function directly
             return emailit_fallback_wp_mail($to, $subject, $message, $headers, $attachments);
         }
 
-        // Verificar que la API key esté configurada
+        // Check that the API key is configured
         if (empty($plugin->settings->get('api_key'))) {
-            // Si no hay API key, usar el comportamiento por defecto de WordPress
-            // Esto previene errores si el plugin está activo pero no configurado
+            // No API key, use default WordPress behavior
+            // This prevents errors if the plugin is active but not configured
             do_action('wp_mail_failed', new WP_Error(
                 'emailit_not_configured',
-                __('EmailIT Mailer no está configurado. Por favor configure su API Key.', 'emailit-mailer')
+                __('EmailIT Mailer is not configured. Please configure your API Key.', 'emailit-mailer')
             ));
             return false;
         }
@@ -277,22 +277,22 @@ if (!function_exists('wp_mail')) {
 }
 
 /**
- * Función de respaldo para wp_mail cuando el plugin está deshabilitado
- * Implementa la lógica nativa de WordPress para enviar correos
+ * Fallback function for wp_mail when plugin is disabled
+ * Implements native WordPress email sending logic
  *
- * @param string|string[] $to          Dirección(es) de correo del destinatario.
- * @param string          $subject     Asunto del correo.
- * @param string          $message     Contenido del mensaje.
- * @param string|string[] $headers     Cabeceras adicionales opcionales.
- * @param string|string[] $attachments Archivos adjuntos opcionales.
- * @return bool Si el correo fue enviado exitosamente.
+ * @param string|string[] $to          Recipient email address(es).
+ * @param string          $subject     Email subject.
+ * @param string          $message     Message content.
+ * @param string|string[] $headers     Optional additional headers.
+ * @param string|string[] $attachments Optional file attachments.
+ * @return bool Whether the email was sent successfully.
  */
 function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attachments = array())
 {
-    // Usar PHPMailer directamente como lo hace WordPress
+    // Use PHPMailer directly as WordPress does
     global $phpmailer;
 
-    // Asegurarse de que PHPMailer esté inicializado
+    // Ensure PHPMailer is initialized
     if (!($phpmailer instanceof PHPMailer\PHPMailer\PHPMailer)) {
         require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
         require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
@@ -304,7 +304,7 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
         };
     }
 
-    // Vaciar cualquier configuración anterior
+    // Clear any previous configuration
     $phpmailer->clearAllRecipients();
     $phpmailer->clearAttachments();
     $phpmailer->clearCustomHeaders();
@@ -312,7 +312,7 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
     $phpmailer->Body = '';
     $phpmailer->AltBody = '';
 
-    // Configurar destinatarios
+    // Configure recipients
     $to_array = is_array($to) ? $to : explode(',', $to);
     foreach ($to_array as $recipient) {
         try {
@@ -322,20 +322,20 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
         }
     }
 
-    // Configurar remitente por defecto
+    // Configure default sender
     $from_email = apply_filters('wp_mail_from', get_option('admin_email'));
     $from_name = apply_filters('wp_mail_from_name', get_option('blogname'));
 
     try {
         $phpmailer->setFrom($from_email, $from_name);
     } catch (PHPMailer\PHPMailer\Exception $e) {
-        // Error silencioso
+        // Silent error
     }
 
-    // Asunto y mensaje
+    // Subject and message
     $phpmailer->Subject = $subject;
 
-    // Determinar tipo de contenido
+    // Determine content type
     $content_type = apply_filters('wp_mail_content_type', 'text/plain');
 
     if ('text/html' === $content_type) {
@@ -346,7 +346,7 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
         $phpmailer->Body = $message;
     }
 
-    // Procesar headers
+    // Process headers
     if (!empty($headers)) {
         $headers_array = is_array($headers) ? $headers : explode("\n", str_replace("\r\n", "\n", $headers));
 
@@ -391,14 +391,14 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
                     try {
                         $phpmailer->addReplyTo(trim($value));
                     } catch (PHPMailer\PHPMailer\Exception $e) {
-                        // Error silencioso
+                        // Silent error
                     }
                     break;
             }
         }
     }
 
-    // Procesar adjuntos
+    // Process attachments
     if (!empty($attachments)) {
         $attachments_array = is_array($attachments) ? $attachments : array($attachments);
 
@@ -413,10 +413,10 @@ function emailit_fallback_wp_mail($to, $subject, $message, $headers = '', $attac
         }
     }
 
-    // Permitir que otros plugins modifiquen PHPMailer
+    // Allow other plugins to modify PHPMailer
     do_action_ref_array('phpmailer_init', array(&$phpmailer));
 
-    // Enviar el correo
+    // Send the email
     try {
         $result = $phpmailer->send();
         return $result;

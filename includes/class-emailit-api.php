@@ -1,6 +1,6 @@
 <?php
 /**
- * Clase cliente de la API de EmailIT
+ * EmailIT API Client Class
  *
  * @package EmailIT_Mailer
  * @since 1.0.0
@@ -8,42 +8,42 @@
 
 namespace EmailIT;
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
- * Clase API
+ * API Class
  * 
- * Maneja todas las comunicaciones con la API de EmailIT
+ * Handles all communications with the EmailIT API
  */
 class API
 {
 
     /**
-     * Endpoint de la API
+     * API Endpoint
      *
      * @var string
      */
     const ENDPOINT = 'https://api.emailit.com/v1/emails';
 
     /**
-     * Instancia de Settings
+     * Settings instance
      *
      * @var Settings
      */
     private $settings;
 
     /**
-     * Último error ocurrido
+     * Last error occurred
      *
      * @var string
      */
     private $last_error = '';
 
     /**
-     * Última respuesta de la API
+     * Last API response
      *
      * @var array
      */
@@ -52,7 +52,7 @@ class API
     /**
      * Constructor
      *
-     * @param Settings $settings Instancia de configuraciones
+     * @param Settings $settings Settings instance
      */
     public function __construct(Settings $settings)
     {
@@ -60,41 +60,41 @@ class API
     }
 
     /**
-     * Envía un correo electrónico a través de la API de EmailIT
+     * Sends an email through the EmailIT API
      *
-     * @param array $email_data Datos del correo
-     * @return bool|array True si el envío fue exitoso, array con error en caso contrario
+     * @param array $email_data Email data
+     * @return bool|array True if sending was successful, array with error otherwise
      */
     public function send_email(array $email_data)
     {
         $api_key = $this->settings->get('api_key');
 
         if (empty($api_key)) {
-            $this->last_error = __('API Key no configurada', 'emailit-mailer');
+            $this->last_error = __('API Key not configured', 'emailit-mailer');
             return $this->create_error('api_key_missing', $this->last_error);
         }
 
-        // Validar campos requeridos
+        // Validate required fields
         $validation = $this->validate_email_data($email_data);
         if (is_wp_error($validation)) {
             $this->last_error = $validation->get_error_message();
             return $validation;
         }
 
-        // Preparar el payload
+        // Prepare the payload
         $payload = $this->prepare_payload($email_data);
 
-        // Realizar la petición
+        // Make the request
         $response = $this->make_request($payload, $api_key);
 
         return $response;
     }
 
     /**
-     * Valida los datos del correo electrónico
+     * Validates email data
      *
-     * @param array $email_data Datos del correo
-     * @return true|\WP_Error True si es válido, WP_Error si hay errores
+     * @param array $email_data Email data
+     * @return true|\WP_Error True if valid, WP_Error if there are errors
      */
     private function validate_email_data(array $email_data)
     {
@@ -105,34 +105,34 @@ class API
                 return $this->create_error(
                     'missing_field',
                     sprintf(
-                        /* translators: %s: nombre del campo */
-                        __('El campo "%s" es requerido.', 'emailit-mailer'),
+                        /* translators: %s: field name */
+                        __('The "%s" field is required.', 'emailit-mailer'),
                         $field
                     )
                 );
             }
         }
 
-        // Debe tener contenido HTML o texto plano
+        // Must have HTML or plain text content
         if (empty($email_data['html']) && empty($email_data['text'])) {
             return $this->create_error(
                 'missing_content',
-                __('El correo debe tener contenido HTML o texto plano.', 'emailit-mailer')
+                __('The email must have HTML or plain text content.', 'emailit-mailer')
             );
         }
 
-        // Validar formato de email
+        // Validate email format
         if (!$this->is_valid_email_format($email_data['from'])) {
             return $this->create_error(
                 'invalid_from',
-                __('El formato del email del remitente no es válido.', 'emailit-mailer')
+                __('The sender email format is not valid.', 'emailit-mailer')
             );
         }
 
         if (!$this->is_valid_email_format($email_data['to'])) {
             return $this->create_error(
                 'invalid_to',
-                __('El formato del email del destinatario no es válido.', 'emailit-mailer')
+                __('The recipient email format is not valid.', 'emailit-mailer')
             );
         }
 
@@ -140,14 +140,14 @@ class API
     }
 
     /**
-     * Valida el formato de un email (puede incluir nombre)
+     * Validates email format (can include name)
      *
-     * @param string $email Email a validar
+     * @param string $email Email to validate
      * @return bool
      */
     private function is_valid_email_format($email)
     {
-        // Formato: "Name <email@domain.com>" o "email@domain.com"
+        // Format: "Name <email@domain.com>" or "email@domain.com"
         if (preg_match('/<([^>]+)>/', $email, $matches)) {
             $email = $matches[1];
         }
@@ -155,10 +155,10 @@ class API
     }
 
     /**
-     * Prepara el payload para la API
+     * Prepares the payload for the API
      *
-     * @param array $email_data Datos del correo
-     * @return array Payload preparado
+     * @param array $email_data Email data
+     * @return array Prepared payload
      */
     private function prepare_payload(array $email_data)
     {
@@ -173,47 +173,47 @@ class API
             $payload['reply_to'] = $email_data['reply_to'];
         }
 
-        // Contenido HTML
+        // HTML content
         if (!empty($email_data['html'])) {
             $payload['html'] = $email_data['html'];
         }
 
-        // Contenido de texto plano
+        // Plain text content
         if (!empty($email_data['text'])) {
             $payload['text'] = $email_data['text'];
         }
 
-        // Headers adicionales
+        // Additional headers
         if (!empty($email_data['headers']) && is_array($email_data['headers'])) {
             $payload['headers'] = $email_data['headers'];
         }
 
-        // Adjuntos
+        // Attachments
         if (!empty($email_data['attachments']) && is_array($email_data['attachments'])) {
             $payload['attachments'] = $this->prepare_attachments($email_data['attachments']);
         }
 
         /**
-         * Filtro para modificar el payload antes de enviarlo
+         * Filter to modify the payload before sending
          *
-         * @param array $payload Payload preparado
-         * @param array $email_data Datos originales del correo
+         * @param array $payload Prepared payload
+         * @param array $email_data Original email data
          */
         return apply_filters('emailit_api_payload', $payload, $email_data);
     }
 
     /**
-     * Prepara los adjuntos para la API
+     * Prepares attachments for the API
      *
-     * @param array $attachments Lista de archivos adjuntos
-     * @return array Adjuntos preparados
+     * @param array $attachments List of file attachments
+     * @return array Prepared attachments
      */
     private function prepare_attachments(array $attachments)
     {
         $prepared = array();
 
         foreach ($attachments as $attachment) {
-            // Si es una ruta de archivo
+            // If it's a file path
             if (is_string($attachment) && file_exists($attachment)) {
                 $content = file_get_contents($attachment);
                 if (false !== $content) {
@@ -224,7 +224,7 @@ class API
                     );
                 }
             }
-            // Si ya es un array con los datos del adjunto
+            // If it's already an array with attachment data
             elseif (is_array($attachment) && isset($attachment['filename'], $attachment['content'])) {
                 $prepared[] = array(
                     'filename' => sanitize_file_name($attachment['filename']),
@@ -238,10 +238,10 @@ class API
     }
 
     /**
-     * Obtiene el tipo MIME de un archivo
+     * Gets the MIME type of a file
      *
-     * @param string $filepath Ruta del archivo
-     * @return string Tipo MIME
+     * @param string $filepath File path
+     * @return string MIME type
      */
     private function get_mime_type($filepath)
     {
@@ -255,7 +255,7 @@ class API
             }
         }
 
-        // Fallback usando la función de PHP si está disponible
+        // Fallback using PHP function if available
         if (function_exists('mime_content_type')) {
             return mime_content_type($filepath);
         }
@@ -264,11 +264,11 @@ class API
     }
 
     /**
-     * Realiza la petición HTTP a la API
+     * Makes the HTTP request to the API
      *
-     * @param array  $payload Datos a enviar
-     * @param string $api_key Clave de API
-     * @return bool|\WP_Error True si fue exitoso, WP_Error si falló
+     * @param array  $payload Data to send
+     * @param string $api_key API key
+     * @return bool|\WP_Error True if successful, WP_Error if failed
      */
     private function make_request(array $payload, string $api_key)
     {
@@ -284,16 +284,16 @@ class API
         );
 
         /**
-         * Filtro para modificar los argumentos de la petición HTTP
+         * Filter to modify HTTP request arguments
          *
-         * @param array $args Argumentos de wp_remote_post
-         * @param array $payload Payload del correo
+         * @param array $args Arguments for wp_remote_post
+         * @param array $payload Email payload
          */
         $args = apply_filters('emailit_api_request_args', $args, $payload);
 
         $response = wp_remote_post(self::ENDPOINT, $args);
 
-        // Error de conexión
+        // Connection error
         if (is_wp_error($response)) {
             $this->last_error = $response->get_error_message();
             $this->last_response = array(
@@ -313,38 +313,38 @@ class API
             'raw' => $response_body,
         );
 
-        // Verificar código de respuesta (2xx = éxito)
+        // Check response code (2xx = success)
         if ($response_code >= 200 && $response_code < 300) {
             $this->last_error = '';
 
             /**
-             * Acción después de un envío exitoso
+             * Action after successful send
              *
-             * @param array $payload Payload enviado
-             * @param array $response Respuesta de la API
+             * @param array $payload Sent payload
+             * @param array $response API response
              */
             do_action('emailit_email_sent', $payload, $this->last_response);
 
             return true;
         }
 
-        // Error de la API
+        // API error
         $error_message = isset($decoded_body['message'])
             ? $decoded_body['message']
             : sprintf(
-                /* translators: %d: código de error HTTP */
-                __('Error de la API (código %d)', 'emailit-mailer'),
+                /* translators: %d: HTTP error code */
+                __('API error (code %d)', 'emailit-mailer'),
                 $response_code
             );
 
         $this->last_error = $error_message;
 
         /**
-         * Acción después de un error de envío
+         * Action after send error
          *
-         * @param array $payload Payload enviado
-         * @param array $response Respuesta de la API
-         * @param string $error_message Mensaje de error
+         * @param array $payload Sent payload
+         * @param array $response API response
+         * @param string $error_message Error message
          */
         do_action('emailit_email_failed', $payload, $this->last_response, $error_message);
 
@@ -352,10 +352,10 @@ class API
     }
 
     /**
-     * Crea un objeto WP_Error
+     * Creates a WP_Error object
      *
-     * @param string $code Código del error
-     * @param string $message Mensaje del error
+     * @param string $code Error code
+     * @param string $message Error message
      * @return \WP_Error
      */
     private function create_error(string $code, string $message)
@@ -364,7 +364,7 @@ class API
     }
 
     /**
-     * Obtiene el último error
+     * Gets the last error
      *
      * @return string
      */
@@ -374,7 +374,7 @@ class API
     }
 
     /**
-     * Obtiene la última respuesta
+     * Gets the last response
      *
      * @return array
      */
@@ -384,10 +384,10 @@ class API
     }
 
     /**
-     * Prueba la conexión con la API
+     * Tests the connection with the API
      *
-     * @param string $test_email Email de destino para prueba
-     * @return bool|\WP_Error True si la prueba fue exitosa
+     * @param string $test_email Destination email for testing
+     * @return bool|\WP_Error True if test was successful
      */
     public function test_connection(string $test_email)
     {
@@ -395,7 +395,7 @@ class API
         $from_name = $this->settings->get('from_name');
 
         if (empty($from_email)) {
-            return $this->create_error('missing_from', __('Configure el email del remitente primero.', 'emailit-mailer'));
+            return $this->create_error('missing_from', __('Please configure the sender email first.', 'emailit-mailer'));
         }
 
         $from = !empty($from_name)
@@ -406,8 +406,8 @@ class API
             'from' => $from,
             'to' => $test_email,
             'subject' => sprintf(
-                /* translators: %s: nombre del sitio */
-                __('[Prueba] EmailIT Mailer - %s', 'emailit-mailer'),
+                /* translators: %s: site name */
+                __('[Test] EmailIT Mailer - %s', 'emailit-mailer'),
                 get_bloginfo('name')
             ),
             'html' => $this->get_test_email_html(),
@@ -423,7 +423,7 @@ class API
     }
 
     /**
-     * Genera el contenido HTML del email de prueba
+     * Generates the HTML content for test email
      *
      * @return string
      */
@@ -442,35 +442,35 @@ class API
             <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
                     <h1 style="margin: 0;">✉️ EmailIT Mailer</h1>
-                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Prueba de Conexión Exitosa</p>
+                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Connection Test Successful</p>
                 </div>
                 <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
-                    <h2 style="color: #1f2937; margin-top: 0;">¡Felicitaciones! 🎉</h2>
+                    <h2 style="color: #1f2937; margin-top: 0;">Congratulations! 🎉</h2>
                     <p style="color: #4b5563; line-height: 1.6;">
-                        Este correo confirma que el plugin <strong>EmailIT Mailer</strong> está correctamente configurado 
-                        y conectado a la API de EmailIT en su sitio <strong>%2$s</strong>.
+                        This email confirms that the <strong>EmailIT Mailer</strong> plugin is correctly configured 
+                        and connected to the EmailIT API on your site <strong>%2$s</strong>.
                     </p>
                     <p style="color: #4b5563; line-height: 1.6;">
-                        Todos los correos de WordPress ahora serán enviados a través de EmailIT, 
-                        mejorando la entregabilidad de sus mensajes.
+                        All WordPress emails will now be sent through EmailIT, 
+                        improving the deliverability of your messages.
                     </p>
                     <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
-                        <strong style="color: #065f46;">Estado:</strong>
-                        <span style="color: #047857;">Conexión establecida correctamente</span>
+                        <strong style="color: #065f46;">Status:</strong>
+                        <span style="color: #047857;">Connection established successfully</span>
                     </div>
                     <p style="color: #6b7280; font-size: 14px; margin-bottom: 0;">
-                        — Plugin desarrollado por <a href="https://orralasystems.com" style="color: #667eea;">Orrala Systems</a>
+                        — Plugin developed by <a href="https://orralasystems.com" style="color: #667eea;">Orrala Systems</a>
                     </p>
                 </div>
             </body>
             </html>',
-            esc_html__('Prueba de EmailIT Mailer', 'emailit-mailer'),
+            esc_html__('EmailIT Mailer Test', 'emailit-mailer'),
             esc_html($site_name)
         );
     }
 
     /**
-     * Genera el contenido de texto plano del email de prueba
+     * Generates the plain text content for test email
      *
      * @return string
      */
@@ -483,14 +483,14 @@ class API
             "%s\n\n" .
             "%s\n\n" .
             "-- \n%s",
-            __('✉️ EmailIT Mailer - Prueba de Conexión', 'emailit-mailer'),
+            __('✉️ EmailIT Mailer - Connection Test', 'emailit-mailer'),
             sprintf(
-                /* translators: %s: nombre del sitio */
-                __('¡Felicitaciones! Este correo confirma que el plugin EmailIT Mailer está correctamente configurado en su sitio %s.', 'emailit-mailer'),
+                /* translators: %s: site name */
+                __('Congratulations! This email confirms that the EmailIT Mailer plugin is correctly configured on your site %s.', 'emailit-mailer'),
                 $site_name
             ),
-            __('Todos los correos de WordPress ahora serán enviados a través de EmailIT.', 'emailit-mailer'),
-            __('Plugin desarrollado por Orrala Systems', 'emailit-mailer')
+            __('All WordPress emails will now be sent through EmailIT.', 'emailit-mailer'),
+            __('Plugin developed by Orrala Systems', 'emailit-mailer')
         );
     }
 }

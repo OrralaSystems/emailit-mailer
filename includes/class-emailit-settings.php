@@ -1,6 +1,6 @@
 <?php
 /**
- * Clase de gestión de configuraciones
+ * Settings management class
  *
  * @package EmailIT_Mailer
  * @since 1.0.0
@@ -8,42 +8,42 @@
 
 namespace EmailIT;
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
- * Clase Settings
+ * Settings Class
  * 
- * Gestiona todas las opciones de configuración del plugin
+ * Manages all plugin configuration options
  */
 class Settings
 {
 
     /**
-     * Nombre de la opción en la base de datos
+     * Option name in database
      *
      * @var string
      */
     const OPTION_NAME = 'emailit_settings';
 
     /**
-     * Grupo de opciones para la API de Settings
+     * Option group for Settings API
      *
      * @var string
      */
     const OPTION_GROUP = 'emailit_settings_group';
 
     /**
-     * Opciones cargadas
+     * Loaded options
      *
      * @var array
      */
     private $options = array();
 
     /**
-     * Opciones por defecto
+     * Default options
      *
      * @var array
      */
@@ -69,7 +69,7 @@ class Settings
     }
 
     /**
-     * Carga las opciones desde la base de datos
+     * Load options from database
      */
     private function load_options()
     {
@@ -78,10 +78,10 @@ class Settings
     }
 
     /**
-     * Obtiene una opción específica
+     * Get a specific option
      *
-     * @param string $key Nombre de la opción
-     * @param mixed  $default Valor por defecto si no existe
+     * @param string $key Option name
+     * @param mixed  $default Default value if not exists
      * @return mixed
      */
     public function get($key, $default = null)
@@ -98,7 +98,7 @@ class Settings
     }
 
     /**
-     * Obtiene todas las opciones
+     * Get all options
      *
      * @return array
      */
@@ -108,10 +108,10 @@ class Settings
     }
 
     /**
-     * Actualiza una opción específica
+     * Update a specific option
      *
-     * @param string $key   Nombre de la opción
-     * @param mixed  $value Valor a guardar
+     * @param string $key   Option name
+     * @param mixed  $value Value to save
      * @return bool
      */
     public function set($key, $value)
@@ -121,9 +121,9 @@ class Settings
     }
 
     /**
-     * Actualiza múltiples opciones
+     * Update multiple options
      *
-     * @param array $options Opciones a actualizar
+     * @param array $options Options to update
      * @return bool
      */
     public function update($options)
@@ -133,12 +133,12 @@ class Settings
     }
 
     /**
-     * Establece los valores por defecto
+     * Set default values
      */
     public function set_defaults()
     {
         if (false === get_option(self::OPTION_NAME)) {
-            // Intentar obtener el email del administrador como valor por defecto
+            // Try to get admin email as default value
             $admin_email = get_option('admin_email');
             $this->defaults['from_email'] = $admin_email;
             $this->defaults['from_name'] = get_option('blogname', 'WordPress');
@@ -149,7 +149,7 @@ class Settings
     }
 
     /**
-     * Registra las configuraciones con la API de WordPress Settings
+     * Register settings with WordPress Settings API
      */
     public function register_settings()
     {
@@ -163,114 +163,114 @@ class Settings
             )
         );
 
-        // Sección: Estado General
+        // Section: General Status
         add_settings_section(
             'emailit_general_section',
-            __('Estado del Plugin', 'emailit-mailer'),
+            __('Plugin Status', 'emailit-mailer'),
             array($this, 'render_general_section'),
             'emailit-settings'
         );
 
-        // Campo: Habilitar Plugin
+        // Field: Enable Plugin
         add_settings_field(
             'enabled',
-            __('Habilitar EmailIT Mailer', 'emailit-mailer'),
+            __('Enable EmailIT Mailer', 'emailit-mailer'),
             array($this, 'render_enabled_field'),
             'emailit-settings',
             'emailit_general_section'
         );
 
-        // Sección: Autenticación API
+        // Section: API Authentication
         add_settings_section(
             'emailit_api_section',
-            __('Configuración de API', 'emailit-mailer'),
+            __('API Configuration', 'emailit-mailer'),
             array($this, 'render_api_section'),
             'emailit-settings'
         );
 
-        // Campo: API Key
+        // Field: API Key
         add_settings_field(
             'api_key',
-            __('API Key de EmailIT', 'emailit-mailer'),
+            __('EmailIT API Key', 'emailit-mailer'),
             array($this, 'render_api_key_field'),
             'emailit-settings',
             'emailit_api_section'
         );
 
-        // Sección: Remitente
+        // Section: Sender
         add_settings_section(
             'emailit_sender_section',
-            __('Configuración del Remitente', 'emailit-mailer'),
+            __('Sender Configuration', 'emailit-mailer'),
             array($this, 'render_sender_section'),
             'emailit-settings'
         );
 
-        // Campo: Email del remitente
+        // Field: Sender Email
         add_settings_field(
             'from_email',
-            __('Email del Remitente', 'emailit-mailer'),
+            __('From Email', 'emailit-mailer'),
             array($this, 'render_from_email_field'),
             'emailit-settings',
             'emailit_sender_section'
         );
 
-        // Campo: Nombre del remitente
+        // Field: Sender Name
         add_settings_field(
             'from_name',
-            __('Nombre del Remitente', 'emailit-mailer'),
+            __('From Name', 'emailit-mailer'),
             array($this, 'render_from_name_field'),
             'emailit-settings',
             'emailit_sender_section'
         );
 
-        // Campo: Forzar remitente
+        // Field: Force Sender
         add_settings_field(
             'force_from',
-            __('Forzar Remitente', 'emailit-mailer'),
+            __('Force Sender', 'emailit-mailer'),
             array($this, 'render_force_from_field'),
             'emailit-settings',
             'emailit_sender_section'
         );
 
-        // Campo: Reply-To
+        // Field: Reply-To
         add_settings_field(
             'reply_to',
-            __('Email de Respuesta (Reply-To)', 'emailit-mailer'),
+            __('Reply-To Email', 'emailit-mailer'),
             array($this, 'render_reply_to_field'),
             'emailit-settings',
             'emailit_sender_section'
         );
 
-        // Sección: Logs
+        // Section: Logs
         add_settings_section(
             'emailit_logs_section',
-            __('Configuración de Logs', 'emailit-mailer'),
+            __('Logging Configuration', 'emailit-mailer'),
             array($this, 'render_logs_section'),
             'emailit-settings'
         );
 
-        // Campo: Habilitar logs
+        // Field: Enable Logs
         add_settings_field(
             'enable_logging',
-            __('Habilitar Registro', 'emailit-mailer'),
+            __('Enable Logging', 'emailit-mailer'),
             array($this, 'render_enable_logging_field'),
             'emailit-settings',
             'emailit_logs_section'
         );
 
-        // Campo: Días de retención
+        // Field: Retention Days
         add_settings_field(
             'log_retention_days',
-            __('Días de Retención', 'emailit-mailer'),
+            __('Retention Days', 'emailit-mailer'),
             array($this, 'render_log_retention_field'),
             'emailit-settings',
             'emailit_logs_section'
         );
 
-        // Campo: Máximo de entradas
+        // Field: Maximum Entries
         add_settings_field(
             'max_log_entries',
-            __('Máximo de Entradas', 'emailit-mailer'),
+            __('Maximum Entries', 'emailit-mailer'),
             array($this, 'render_max_log_entries_field'),
             'emailit-settings',
             'emailit_logs_section'
@@ -278,19 +278,19 @@ class Settings
     }
 
     /**
-     * Sanitiza las configuraciones antes de guardar
+     * Sanitize settings before saving
      *
-     * @param array $input Datos de entrada
-     * @return array Datos sanitizados
+     * @param array $input Input data
+     * @return array Sanitized data
      */
     public function sanitize_settings($input)
     {
         $sanitized = array();
 
-        // Habilitar plugin
+        // Enable plugin
         $sanitized['enabled'] = isset($input['enabled']) && $input['enabled'] ? true : false;
 
-        // API Key - mantener el valor anterior si está vacío (para no perderlo)
+        // API Key - keep previous value if empty (to not lose it)
         if (isset($input['api_key'])) {
             $sanitized['api_key'] = sanitize_text_field($input['api_key']);
             if (empty($sanitized['api_key'])) {
@@ -298,17 +298,17 @@ class Settings
             }
         }
 
-        // Email del remitente
+        // Sender Email
         if (isset($input['from_email'])) {
             $sanitized['from_email'] = sanitize_email($input['from_email']);
         }
 
-        // Nombre del remitente
+        // Sender Name
         if (isset($input['from_name'])) {
             $sanitized['from_name'] = sanitize_text_field($input['from_name']);
         }
 
-        // Forzar remitente
+        // Force Sender
         $sanitized['force_from'] = isset($input['force_from']) && $input['force_from'] ? true : false;
 
         // Reply-To
@@ -316,15 +316,15 @@ class Settings
             $sanitized['reply_to'] = sanitize_email($input['reply_to']);
         }
 
-        // Habilitar logs
+        // Enable Logs
         $sanitized['enable_logging'] = isset($input['enable_logging']) && $input['enable_logging'] ? true : false;
 
-        // Días de retención
+        // Retention Days
         if (isset($input['log_retention_days'])) {
             $sanitized['log_retention_days'] = absint($input['log_retention_days']);
         }
 
-        // Máximo de entradas
+        // Maximum Entries
         if (isset($input['max_log_entries'])) {
             $sanitized['max_log_entries'] = absint($input['max_log_entries']);
             if ($sanitized['max_log_entries'] < 10) {
@@ -339,15 +339,15 @@ class Settings
     }
 
     /**
-     * Renderiza la descripción de la sección General
+     * Render General section description
      */
     public function render_general_section()
     {
-        echo '<p>' . esc_html__('Controle el estado del plugin. Cuando está deshabilitado, WordPress usará su método de envío de correo predeterminado.', 'emailit-mailer') . '</p>';
+        echo '<p>' . esc_html__('Control the plugin status. When disabled, WordPress will use its default email sending method.', 'emailit-mailer') . '</p>';
     }
 
     /**
-     * Renderiza el campo Habilitar Plugin
+     * Render Enable Plugin field
      */
     public function render_enabled_field()
     {
@@ -359,24 +359,24 @@ class Settings
             <span class="emailit-toggle-slider"></span>
         </label>
         <span class="emailit-toggle-label <?php echo $enabled ? 'enabled' : 'disabled'; ?>" id="emailit_enabled_label">
-            <?php echo $enabled ? esc_html__('Activo', 'emailit-mailer') : esc_html__('Inactivo', 'emailit-mailer'); ?>
+            <?php echo $enabled ? esc_html__('Active', 'emailit-mailer') : esc_html__('Inactive', 'emailit-mailer'); ?>
         </span>
         <p class="description">
-            <?php esc_html_e('Cuando está activo, todos los correos de WordPress se enviarán a través de EmailIT. Si lo desactiva, se usará el método de envío predeterminado de WordPress.', 'emailit-mailer'); ?>
+            <?php esc_html_e('When active, all WordPress emails will be sent through EmailIT. If disabled, the default WordPress sending method will be used.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza la descripción de la sección API
+     * Render API section description
      */
     public function render_api_section()
     {
-        echo '<p>' . esc_html__('Configure su clave API de EmailIT. Puede obtenerla desde su panel de control en emailit.com.', 'emailit-mailer') . '</p>';
+        echo '<p>' . esc_html__('Configure your EmailIT API key. You can get it from your control panel at emailit.com.', 'emailit-mailer') . '</p>';
     }
 
     /**
-     * Renderiza el campo API Key
+     * Render API Key field
      */
     public function render_api_key_field()
     {
@@ -385,15 +385,15 @@ class Settings
         ?>
         <input type="password" id="emailit_api_key" name="<?php echo esc_attr(self::OPTION_NAME); ?>[api_key]"
             value="<?php echo esc_attr($api_key); ?>" class="regular-text" autocomplete="off"
-            placeholder="<?php echo esc_attr($masked_key ?: __('Ingrese su API Key', 'emailit-mailer')); ?>">
+            placeholder="<?php echo esc_attr($masked_key ?: __('Enter your API Key', 'emailit-mailer')); ?>">
         <button type="button" class="button button-secondary" id="emailit-toggle-api-key">
-            <?php esc_html_e('Mostrar', 'emailit-mailer'); ?>
+            <?php esc_html_e('Show', 'emailit-mailer'); ?>
         </button>
         <p class="description">
             <?php
             printf(
                 /* translators: %s: URL to EmailIT dashboard */
-                esc_html__('Obtenga su API Key desde %s', 'emailit-mailer'),
+                esc_html__('Get your API Key from %s', 'emailit-mailer'),
                 '<a href="https://emailit.com" target="_blank" rel="noopener noreferrer">EmailIT Dashboard</a>'
             );
             ?>
@@ -402,29 +402,30 @@ class Settings
     }
 
     /**
-     * Renderiza la descripción de la sección Remitente
+     * Render Sender section description
      */
     public function render_sender_section()
     {
-        echo '<p>' . esc_html__('Configure el remitente predeterminado para todos los correos enviados desde WordPress.', 'emailit-mailer') . '</p>';
+        echo '<p>' . esc_html__('Configure the default sender for all emails sent from WordPress.', 'emailit-mailer') . '</p>';
     }
 
     /**
-     * Renderiza el campo Email del Remitente
+     * Render From Email field
      */
     public function render_from_email_field()
     {
         ?>
         <input type="email" id="emailit_from_email" name="<?php echo esc_attr(self::OPTION_NAME); ?>[from_email]"
-            value="<?php echo esc_attr($this->get('from_email')); ?>" class="regular-text" placeholder="correo@tudominio.com">
+            value="<?php echo esc_attr($this->get('from_email')); ?>" class="regular-text"
+            placeholder="email@yourdomain.com">
         <p class="description">
-            <?php esc_html_e('Dirección de correo desde la cual se enviarán todos los emails. Debe estar verificada en EmailIT.', 'emailit-mailer'); ?>
+            <?php esc_html_e('Email address from which all emails will be sent. Must be verified in EmailIT.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza el campo Nombre del Remitente
+     * Render From Name field
      */
     public function render_from_name_field()
     {
@@ -433,13 +434,13 @@ class Settings
             value="<?php echo esc_attr($this->get('from_name')); ?>" class="regular-text"
             placeholder="<?php echo esc_attr(get_option('blogname')); ?>">
         <p class="description">
-            <?php esc_html_e('Nombre que aparecerá como remitente de los correos.', 'emailit-mailer'); ?>
+            <?php esc_html_e('Name that will appear as the email sender.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza el campo Forzar Remitente
+     * Render Force Sender field
      */
     public function render_force_from_field()
     {
@@ -447,56 +448,56 @@ class Settings
         <label for="emailit_force_from">
             <input type="checkbox" id="emailit_force_from" name="<?php echo esc_attr(self::OPTION_NAME); ?>[force_from]"
                 value="1" <?php checked($this->get('force_from'), true); ?>>
-            <?php esc_html_e('Forzar el remitente configurado en todos los correos', 'emailit-mailer'); ?>
+            <?php esc_html_e('Force configured sender on all emails', 'emailit-mailer'); ?>
         </label>
         <p class="description">
-            <?php esc_html_e('Si está habilitado, todos los correos usarán el remitente configurado arriba, ignorando el remitente especificado por otros plugins.', 'emailit-mailer'); ?>
+            <?php esc_html_e('If enabled, all emails will use the sender configured above, ignoring the sender specified by other plugins.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza el campo Reply-To
+     * Render Reply-To field
      */
     public function render_reply_to_field()
     {
         ?>
         <input type="email" id="emailit_reply_to" name="<?php echo esc_attr(self::OPTION_NAME); ?>[reply_to]"
             value="<?php echo esc_attr($this->get('reply_to')); ?>" class="regular-text"
-            placeholder="<?php esc_attr_e('Opcional - Dejar vacío para usar el email del remitente', 'emailit-mailer'); ?>">
+            placeholder="<?php esc_attr_e('Optional - Leave empty to use sender email', 'emailit-mailer'); ?>">
         <p class="description">
-            <?php esc_html_e('Dirección de correo donde se recibirán las respuestas. Si está vacío, se usará el email del remitente.', 'emailit-mailer'); ?>
+            <?php esc_html_e('Email address where replies will be received. If empty, the sender email will be used.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza la descripción de la sección Logs
+     * Render Logs section description
      */
     public function render_logs_section()
     {
-        echo '<p>' . esc_html__('Configure el registro de correos enviados. Los logs ayudan a diagnosticar problemas de entrega.', 'emailit-mailer') . '</p>';
+        echo '<p>' . esc_html__('Configure email logging. Logs help diagnose delivery issues.', 'emailit-mailer') . '</p>';
     }
 
     /**
-     * Renderiza el campo Habilitar Logs
+     * Render Enable Logging field
      */
     public function render_enable_logging_field()
     {
         ?>
         <label for="emailit_enable_logging">
-            <input type="checkbox" id="emailit_enable_logging" name="<?php echo esc_attr(self::OPTION_NAME); ?>[enable_logging]"
-                value="1" <?php checked($this->get('enable_logging'), true); ?>>
-            <?php esc_html_e('Registrar los correos enviados', 'emailit-mailer'); ?>
+            <input type="checkbox" id="emailit_enable_logging"
+                name="<?php echo esc_attr(self::OPTION_NAME); ?>[enable_logging]" value="1" <?php checked($this->get('enable_logging'), true); ?>>
+            <?php esc_html_e('Log sent emails', 'emailit-mailer'); ?>
         </label>
         <p class="description">
-            <?php esc_html_e('Habilita el registro de todos los correos enviados con su estado (enviado/fallido).', 'emailit-mailer'); ?>
+            <?php esc_html_e('Enable logging of all sent emails with their status (sent/failed).', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza el campo Días de Retención
+     * Render Retention Days field
      */
     public function render_log_retention_field()
     {
@@ -504,34 +505,30 @@ class Settings
         <input type="number" id="emailit_log_retention_days"
             name="<?php echo esc_attr(self::OPTION_NAME); ?>[log_retention_days]"
             value="<?php echo esc_attr($this->get('log_retention_days')); ?>" class="small-text" min="0" max="365">
-        <span>
-            <?php esc_html_e('días', 'emailit-mailer'); ?>
-        </span>
+        <span><?php esc_html_e('days', 'emailit-mailer'); ?></span>
         <p class="description">
-            <?php esc_html_e('Número de días que se conservarán los logs. Escriba 0 para conservarlos indefinidamente.', 'emailit-mailer'); ?>
+            <?php esc_html_e('Number of days to keep logs. Enter 0 to keep them indefinitely.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Renderiza el campo Máximo de Entradas
+     * Render Maximum Entries field
      */
     public function render_max_log_entries_field()
     {
         ?>
         <input type="number" id="emailit_max_log_entries" name="<?php echo esc_attr(self::OPTION_NAME); ?>[max_log_entries]"
             value="<?php echo esc_attr($this->get('max_log_entries')); ?>" class="small-text" min="10" max="1000">
-        <span>
-            <?php esc_html_e('entradas', 'emailit-mailer'); ?>
-        </span>
+        <span><?php esc_html_e('entries', 'emailit-mailer'); ?></span>
         <p class="description">
-            <?php esc_html_e('Número máximo de entradas de log a conservar. Los logs más antiguos serán eliminados automáticamente.', 'emailit-mailer'); ?>
+            <?php esc_html_e('Maximum number of log entries to keep. Older logs will be automatically deleted.', 'emailit-mailer'); ?>
         </p>
         <?php
     }
 
     /**
-     * Verifica si el plugin está habilitado
+     * Check if the plugin is enabled
      *
      * @return bool
      */
@@ -541,7 +538,7 @@ class Settings
     }
 
     /**
-     * Verifica si el plugin está configurado correctamente
+     * Check if the plugin is properly configured
      *
      * @return bool
      */
@@ -551,7 +548,7 @@ class Settings
     }
 
     /**
-     * Obtiene los errores de configuración
+     * Get configuration errors
      *
      * @return array
      */
@@ -560,11 +557,11 @@ class Settings
         $errors = array();
 
         if (empty($this->get('api_key'))) {
-            $errors[] = __('No se ha configurado la API Key de EmailIT.', 'emailit-mailer');
+            $errors[] = __('EmailIT API Key is not configured.', 'emailit-mailer');
         }
 
         if (empty($this->get('from_email'))) {
-            $errors[] = __('No se ha configurado el email del remitente.', 'emailit-mailer');
+            $errors[] = __('Sender email is not configured.', 'emailit-mailer');
         }
 
         return $errors;

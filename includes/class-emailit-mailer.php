@@ -1,6 +1,6 @@
 <?php
 /**
- * Clase Mailer - Reemplazo de wp_mail
+ * Mailer Class - wp_mail replacement
  *
  * @package EmailIT_Mailer
  * @since 1.0.0
@@ -8,35 +8,35 @@
 
 namespace EmailIT;
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
- * Clase Mailer
+ * Mailer Class
  * 
- * Maneja el envío de correos electrónicos reemplazando wp_mail()
+ * Handles email sending by replacing wp_mail()
  */
 class Mailer
 {
 
     /**
-     * Instancia de Settings
+     * Settings instance
      *
      * @var Settings
      */
     private $settings;
 
     /**
-     * Instancia de API
+     * API instance
      *
      * @var API
      */
     private $api;
 
     /**
-     * Instancia de Logger
+     * Logger instance
      *
      * @var Logger
      */
@@ -45,9 +45,9 @@ class Mailer
     /**
      * Constructor
      *
-     * @param Settings $settings Instancia de configuraciones
-     * @param API      $api      Instancia de API
-     * @param Logger   $logger   Instancia de Logger
+     * @param Settings $settings Settings instance
+     * @param API      $api      API instance
+     * @param Logger   $logger   Logger instance
      */
     public function __construct(Settings $settings, API $api, Logger $logger)
     {
@@ -57,18 +57,18 @@ class Mailer
     }
 
     /**
-     * Envía un correo electrónico
+     * Sends an email
      *
-     * @param string|array $to          Destinatario(s)
-     * @param string       $subject     Asunto
-     * @param string       $message     Mensaje
-     * @param string|array $headers     Cabeceras
-     * @param string|array $attachments Adjuntos
+     * @param string|array $to          Recipient(s)
+     * @param string       $subject     Subject
+     * @param string       $message     Message
+     * @param string|array $headers     Headers
+     * @param string|array $attachments Attachments
      * @return bool
      */
     public function send($to, $subject, $message, $headers = '', $attachments = array())
     {
-        // Permitir que otros plugins modifiquen los parámetros
+        // Allow other plugins to modify parameters
         $atts = apply_filters('wp_mail', compact('to', 'subject', 'message', 'headers', 'attachments'));
 
         if (isset($atts['to'])) {
@@ -87,10 +87,10 @@ class Mailer
             $attachments = $atts['attachments'];
         }
 
-        // Parsear los datos del email
+        // Parse email data
         $parsed_data = $this->parse_email_data($to, $subject, $message, $headers, $attachments);
 
-        // Enviar a cada destinatario
+        // Send to each recipient
         $success = true;
         $recipients = $this->normalize_recipients($parsed_data['to']);
 
@@ -107,9 +107,9 @@ class Mailer
     }
 
     /**
-     * Envía un correo individual
+     * Sends a single email
      *
-     * @param array $email_data Datos del email
+     * @param array $email_data Email data
      * @return bool
      */
     private function send_single_email(array $email_data)
@@ -117,7 +117,7 @@ class Mailer
         $result = $this->api->send_email($email_data);
 
         if (is_wp_error($result)) {
-            // Registrar el error
+            // Log the error
             $this->logger->log_failure(
                 $email_data['to'],
                 $email_data['subject'],
@@ -125,13 +125,13 @@ class Mailer
                 $email_data['parsed_headers'] ?? array()
             );
 
-            // Disparar acción de WordPress para compatibilidad
+            // Trigger WordPress action for compatibility
             do_action('wp_mail_failed', $result);
 
             return false;
         }
 
-        // Registrar el éxito
+        // Log success
         $this->logger->log_success(
             $email_data['to'],
             $email_data['subject'],
@@ -143,49 +143,49 @@ class Mailer
     }
 
     /**
-     * Parsea los datos del correo electrónico
+     * Parses email data
      *
-     * @param string|array $to          Destinatario(s)
-     * @param string       $subject     Asunto
-     * @param string       $message     Mensaje
-     * @param string|array $headers     Cabeceras
-     * @param string|array $attachments Adjuntos
+     * @param string|array $to          Recipient(s)
+     * @param string       $subject     Subject
+     * @param string       $message     Message
+     * @param string|array $headers     Headers
+     * @param string|array $attachments Attachments
      * @return array
      */
     private function parse_email_data($to, $subject, $message, $headers, $attachments)
     {
-        // Parsear headers
+        // Parse headers
         $parsed_headers = $this->parse_headers($headers);
 
-        // Determinar el remitente
+        // Determine sender
         $from = $this->get_from_address($parsed_headers);
 
-        // Determinar Reply-To
+        // Determine Reply-To
         $reply_to = $this->get_reply_to($parsed_headers);
 
-        // Determinar tipo de contenido
+        // Determine content type
         $content_type = $this->get_content_type($parsed_headers);
 
-        // Preparar el mensaje según el tipo de contenido
+        // Prepare message based on content type
         $html_content = '';
         $text_content = '';
 
         if ('text/html' === $content_type || stripos($content_type, 'text/html') !== false) {
             $html_content = $message;
-            // Generar versión de texto plano
+            // Generate plain text version
             $text_content = $this->html_to_text($message);
         } else {
             $text_content = $message;
-            // Si el mensaje parece HTML, usarlo también como HTML
+            // If message looks like HTML, use it as HTML too
             if (preg_match('/<[^>]+>/', $message)) {
                 $html_content = nl2br($message);
             }
         }
 
-        // Preparar adjuntos
+        // Prepare attachments
         $prepared_attachments = $this->prepare_attachments($attachments);
 
-        // Preparar headers adicionales para la API
+        // Prepare additional headers for API
         $api_headers = $this->prepare_api_headers($parsed_headers);
 
         return array(
@@ -202,10 +202,10 @@ class Mailer
     }
 
     /**
-     * Parsea los headers del correo
+     * Parses email headers
      *
-     * @param string|array $headers Headers en formato string o array
-     * @return array Headers parseados
+     * @param string|array $headers Headers in string or array format
+     * @return array Parsed headers
      */
     private function parse_headers($headers)
     {
@@ -224,7 +224,7 @@ class Mailer
             return $parsed;
         }
 
-        // Convertir a array si es string
+        // Convert to array if string
         if (is_string($headers)) {
             $headers = explode("\n", str_replace("\r\n", "\n", $headers));
         }
@@ -234,7 +234,7 @@ class Mailer
                 continue;
             }
 
-            // Separar nombre y valor
+            // Separate name and value
             $parts = explode(':', $header, 2);
             if (count($parts) !== 2) {
                 continue;
@@ -246,7 +246,7 @@ class Mailer
             switch ($name) {
                 case 'from':
                     $parsed['from'] = $value;
-                    // Extraer nombre si está presente
+                    // Extract name if present
                     if (preg_match('/^(.+?)\s*<(.+?)>$/', $value, $matches)) {
                         $parsed['from_name'] = trim($matches[1], ' "');
                         $parsed['from'] = $matches[2];
@@ -284,9 +284,9 @@ class Mailer
     }
 
     /**
-     * Parsea una lista de emails separados por coma
+     * Parses a comma-separated email list
      *
-     * @param string $list Lista de emails
+     * @param string $list Email list
      * @return array
      */
     private function parse_email_list($list)
@@ -305,22 +305,22 @@ class Mailer
     }
 
     /**
-     * Obtiene la dirección del remitente
+     * Gets the sender address
      *
-     * @param array $parsed_headers Headers parseados
+     * @param array $parsed_headers Parsed headers
      * @return string
      */
     private function get_from_address(array $parsed_headers)
     {
         $force_from = $this->settings->get('force_from');
 
-        // Si se fuerza el remitente, usar el configurado
+        // If forcing sender, use configured
         if ($force_from || empty($parsed_headers['from'])) {
             $from_email = $this->settings->get('from_email');
             $from_name = $this->settings->get('from_name');
 
             if (empty($from_email)) {
-                // Fallback al correo del administrador
+                // Fallback to admin email
                 $from_email = get_option('admin_email');
                 $from_name = get_option('blogname');
             }
@@ -329,7 +329,7 @@ class Mailer
             $from_name = $parsed_headers['from_name'];
         }
 
-        // Formatear: "Nombre <email@dominio.com>"
+        // Format: "Name <email@domain.com>"
         if (!empty($from_name)) {
             return sprintf('%s <%s>', $from_name, $from_email);
         }
@@ -338,33 +338,33 @@ class Mailer
     }
 
     /**
-     * Obtiene la dirección Reply-To
+     * Gets the Reply-To address
      *
-     * @param array $parsed_headers Headers parseados
+     * @param array $parsed_headers Parsed headers
      * @return string
      */
     private function get_reply_to(array $parsed_headers)
     {
-        // Usar Reply-To del header si existe
+        // Use Reply-To from header if exists
         if (!empty($parsed_headers['reply_to'])) {
             return $parsed_headers['reply_to'];
         }
 
-        // Usar el configurado en settings si existe
+        // Use configured in settings if exists
         $settings_reply_to = $this->settings->get('reply_to');
         if (!empty($settings_reply_to)) {
             return $settings_reply_to;
         }
 
-        // Fallback: usar el email del remitente
+        // Fallback: use sender email
         $from_email = $this->settings->get('from_email');
         return !empty($from_email) ? $from_email : get_option('admin_email');
     }
 
     /**
-     * Obtiene el tipo de contenido
+     * Gets the content type
      *
-     * @param array $parsed_headers Headers parseados
+     * @param array $parsed_headers Parsed headers
      * @return string
      */
     private function get_content_type(array $parsed_headers)
@@ -373,14 +373,14 @@ class Mailer
             return $parsed_headers['content_type'];
         }
 
-        // Aplicar filtro de WordPress
+        // Apply WordPress filter
         return apply_filters('wp_mail_content_type', 'text/plain');
     }
 
     /**
-     * Normaliza los destinatarios a un array
+     * Normalizes recipients to an array
      *
-     * @param string|array $to Destinatarios
+     * @param string|array $to Recipients
      * @return array
      */
     private function normalize_recipients($to)
@@ -393,18 +393,18 @@ class Mailer
     }
 
     /**
-     * Convierte HTML a texto plano
+     * Converts HTML to plain text
      *
-     * @param string $html Contenido HTML
-     * @return string Texto plano
+     * @param string $html HTML content
+     * @return string Plain text
      */
     private function html_to_text($html)
     {
-        // Remover scripts y estilos
+        // Remove scripts and styles
         $text = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $html);
         $text = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $text);
 
-        // Convertir algunos elementos a texto
+        // Convert some elements to text
         $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
         $text = preg_replace('/<\/p>/i', "\n\n", $text);
         $text = preg_replace('/<\/h[1-6]>/i', "\n\n", $text);
@@ -412,13 +412,13 @@ class Mailer
         $text = preg_replace('/<\/tr>/i', "\n", $text);
         $text = preg_replace('/<\/td>/i', "\t", $text);
 
-        // Remover todas las etiquetas HTML restantes
+        // Remove all remaining HTML tags
         $text = wp_strip_all_tags($text);
 
-        // Decodificar entidades HTML
+        // Decode HTML entities
         $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
 
-        // Limpiar espacios en blanco excesivos
+        // Clean excessive whitespace
         $text = preg_replace('/[ \t]+/', ' ', $text);
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
 
@@ -426,9 +426,9 @@ class Mailer
     }
 
     /**
-     * Prepara los adjuntos para la API
+     * Prepares attachments for the API
      *
-     * @param string|array $attachments Adjuntos
+     * @param string|array $attachments Attachments
      * @return array
      */
     private function prepare_attachments($attachments)
@@ -460,9 +460,9 @@ class Mailer
     }
 
     /**
-     * Obtiene el tipo MIME de un archivo
+     * Gets the MIME type of a file
      *
-     * @param string $filepath Ruta del archivo
+     * @param string $filepath File path
      * @return string
      */
     private function get_mime_type($filepath)
@@ -486,19 +486,19 @@ class Mailer
     }
 
     /**
-     * Prepara headers adicionales para la API
+     * Prepares additional headers for the API
      *
-     * @param array $parsed_headers Headers parseados
+     * @param array $parsed_headers Parsed headers
      * @return array
      */
     private function prepare_api_headers(array $parsed_headers)
     {
         $api_headers = array();
 
-        // Agregar headers personalizados
+        // Add custom headers
         if (!empty($parsed_headers['custom'])) {
             foreach ($parsed_headers['custom'] as $name => $value) {
-                // Capitalizar el nombre del header
+                // Capitalize header name
                 $formatted_name = implode('-', array_map('ucfirst', explode('-', $name)));
                 $api_headers[$formatted_name] = $value;
             }

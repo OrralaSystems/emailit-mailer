@@ -64,9 +64,9 @@
             var isEnabled = $checkbox.is(':checked');
 
             if (isEnabled) {
-                $label.text('Activo').removeClass('disabled').addClass('enabled');
+                $label.text('Active').removeClass('disabled').addClass('enabled');
             } else {
-                $label.text('Inactivo').removeClass('enabled').addClass('disabled');
+                $label.text('Inactive').removeClass('enabled').addClass('disabled');
             }
         },
 

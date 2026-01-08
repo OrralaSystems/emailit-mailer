@@ -1,6 +1,6 @@
 <?php
 /**
- * Clase de administración del plugin
+ * Plugin administration class
  *
  * @package EmailIT_Mailer
  * @since 1.0.0
@@ -8,42 +8,42 @@
 
 namespace EmailIT;
 
-// Prevenir acceso directo
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
 /**
- * Clase Admin
+ * Admin Class
  * 
- * Gestiona las páginas de administración del plugin
+ * Manages the plugin admin pages
  */
 class Admin
 {
 
     /**
-     * Slug de la página de configuración
+     * Settings page slug
      *
      * @var string
      */
     const SETTINGS_SLUG = 'emailit-settings';
 
     /**
-     * Slug de la página de logs
+     * Logs page slug
      *
      * @var string
      */
     const LOGS_SLUG = 'emailit-logs';
 
     /**
-     * Instancia de Settings
+     * Settings instance
      *
      * @var Settings
      */
     private $settings;
 
     /**
-     * Instancia de Logger
+     * Logger instance
      *
      * @var Logger
      */
@@ -52,8 +52,8 @@ class Admin
     /**
      * Constructor
      *
-     * @param Settings $settings Instancia de configuraciones
-     * @param Logger   $logger   Instancia de Logger
+     * @param Settings $settings Settings instance
+     * @param Logger   $logger   Logger instance
      */
     public function __construct(Settings $settings, Logger $logger)
     {
@@ -64,7 +64,7 @@ class Admin
     }
 
     /**
-     * Inicializa los hooks de administración
+     * Initialize admin hooks
      */
     private function init_hooks()
     {
@@ -78,11 +78,11 @@ class Admin
     }
 
     /**
-     * Añade las páginas de menú de administración
+     * Adds admin menu pages
      */
     public function add_admin_menu()
     {
-        // Página principal de configuración
+        // Main settings page
         add_options_page(
             __('EmailIT Mailer', 'emailit-mailer'),
             __('EmailIT Mailer', 'emailit-mailer'),
@@ -91,7 +91,7 @@ class Admin
             array($this, 'render_settings_page')
         );
 
-        // Subpágina de logs
+        // Logs subpage
         add_options_page(
             __('EmailIT Logs', 'emailit-mailer'),
             __('EmailIT Logs', 'emailit-mailer'),
@@ -102,13 +102,13 @@ class Admin
     }
 
     /**
-     * Encola los assets de administración
+     * Enqueues admin assets
      *
-     * @param string $hook Hook de la página actual
+     * @param string $hook Current page hook
      */
     public function enqueue_admin_assets($hook)
     {
-        // Solo cargar en nuestras páginas
+        // Only load on our pages
         if (!in_array($hook, array('settings_page_' . self::SETTINGS_SLUG, 'settings_page_' . self::LOGS_SLUG), true)) {
             return;
         }
@@ -130,53 +130,53 @@ class Admin
             true
         );
 
-        // Datos para JavaScript
+        // Data for JavaScript
         wp_localize_script('emailit-admin', 'emailitAdmin', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('emailit_admin_nonce'),
             'strings' => array(
-                'testing' => __('Enviando email de prueba...', 'emailit-mailer'),
-                'success' => __('¡Email enviado exitosamente!', 'emailit-mailer'),
-                'error' => __('Error al enviar el email:', 'emailit-mailer'),
-                'clearing' => __('Limpiando logs...', 'emailit-mailer'),
-                'cleared' => __('Logs eliminados correctamente.', 'emailit-mailer'),
-                'clearError' => __('Error al eliminar los logs.', 'emailit-mailer'),
-                'confirmClear' => __('¿Está seguro de que desea eliminar todos los logs? Esta acción no se puede deshacer.', 'emailit-mailer'),
-                'enterEmail' => __('Por favor ingrese un email de destino para la prueba.', 'emailit-mailer'),
+                'testing' => __('Sending test email...', 'emailit-mailer'),
+                'success' => __('Email sent successfully!', 'emailit-mailer'),
+                'error' => __('Error sending email:', 'emailit-mailer'),
+                'clearing' => __('Clearing logs...', 'emailit-mailer'),
+                'cleared' => __('Logs deleted successfully.', 'emailit-mailer'),
+                'clearError' => __('Error deleting logs.', 'emailit-mailer'),
+                'confirmClear' => __('Are you sure you want to delete all logs? This action cannot be undone.', 'emailit-mailer'),
+                'enterEmail' => __('Please enter a destination email for the test.', 'emailit-mailer'),
             ),
         ));
     }
 
     /**
-     * Muestra avisos de administración
+     * Displays admin notices
      */
     public function admin_notices()
     {
-        // Solo mostrar en nuestras páginas o en la lista de plugins
+        // Only show on our pages or plugins list
         $screen = get_current_screen();
         if (!$screen || !in_array($screen->id, array('settings_page_' . self::SETTINGS_SLUG, 'plugins'), true)) {
             return;
         }
 
-        // Verificar si el plugin está configurado
+        // Check if plugin is configured
         $errors = $this->settings->get_configuration_errors();
         if (!empty($errors) && current_user_can('manage_options')) {
             echo '<div class="notice notice-warning is-dismissible">';
-            echo '<p><strong>' . esc_html__('EmailIT Mailer requiere configuración:', 'emailit-mailer') . '</strong></p>';
+            echo '<p><strong>' . esc_html__('EmailIT Mailer requires configuration:', 'emailit-mailer') . '</strong></p>';
             echo '<ul style="list-style: disc; margin-left: 20px;">';
             foreach ($errors as $error) {
                 echo '<li>' . esc_html($error) . '</li>';
             }
             echo '</ul>';
             echo '<p><a href="' . esc_url(admin_url('options-general.php?page=' . self::SETTINGS_SLUG)) . '" class="button">';
-            echo esc_html__('Configurar ahora', 'emailit-mailer');
+            echo esc_html__('Configure Now', 'emailit-mailer');
             echo '</a></p>';
             echo '</div>';
         }
     }
 
     /**
-     * Renderiza la página de configuración
+     * Renders the settings page
      */
     public function render_settings_page()
     {
@@ -184,10 +184,10 @@ class Admin
             return;
         }
 
-        // Verificar si se guardaron las opciones
+        // Check if options were saved
         $settings_updated = isset($_GET['settings-updated']) && 'true' === $_GET['settings-updated'];
 
-        // Obtener estadísticas
+        // Get statistics
         $stats = $this->logger->get_stats();
         ?>
         <div class="wrap emailit-admin-wrap">
@@ -198,42 +198,42 @@ class Admin
             </h1>
 
             <p class="description" style="font-size: 14px; margin-bottom: 20px;">
-                <?php echo esc_html__('Plugin desarrollado por Orrala Systems', 'emailit-mailer'); ?>
+                <?php echo esc_html__('Plugin developed by Orrala Systems', 'emailit-mailer'); ?>
             </p>
 
             <?php if ($settings_updated): ?>
                 <div class="notice notice-success is-dismissible">
                     <p>
-                        <?php echo esc_html__('Configuración guardada correctamente.', 'emailit-mailer'); ?>
+                        <?php echo esc_html__('Settings saved successfully.', 'emailit-mailer'); ?>
                     </p>
                 </div>
             <?php endif; ?>
 
             <div class="emailit-admin-container">
-                <!-- Panel principal de configuración -->
+                <!-- Main settings panel -->
                 <div class="emailit-main-content">
                     <form method="post" action="options.php">
                         <?php
                         settings_fields(Settings::OPTION_GROUP);
                         do_settings_sections('emailit-settings');
-                        submit_button(__('Guardar Configuración', 'emailit-mailer'));
+                        submit_button(__('Save Settings', 'emailit-mailer'));
                         ?>
                     </form>
 
-                    <!-- Sección de prueba de email -->
+                    <!-- Test email section -->
                     <div class="emailit-card" style="margin-top: 30px;">
                         <h2>
-                            <?php echo esc_html__('Enviar Email de Prueba', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Send Test Email', 'emailit-mailer'); ?>
                         </h2>
                         <p class="description">
-                            <?php echo esc_html__('Envíe un email de prueba para verificar que la configuración es correcta.', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Send a test email to verify that the configuration is correct.', 'emailit-mailer'); ?>
                         </p>
 
                         <table class="form-table">
                             <tr>
                                 <th scope="row">
                                     <label for="emailit_test_email">
-                                        <?php echo esc_html__('Email de Destino', 'emailit-mailer'); ?>
+                                        <?php echo esc_html__('Destination Email', 'emailit-mailer'); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -241,7 +241,7 @@ class Admin
                                         value="<?php echo esc_attr(get_option('admin_email')); ?>"
                                         placeholder="test@example.com">
                                     <p class="description">
-                                        <?php echo esc_html__('Dirección donde se enviará el correo de prueba.', 'emailit-mailer'); ?>
+                                        <?php echo esc_html__('Address where the test email will be sent.', 'emailit-mailer'); ?>
                                     </p>
                                 </td>
                             </tr>
@@ -250,18 +250,18 @@ class Admin
                         <p>
                             <button type="button" id="emailit_test_button" class="button button-secondary">
                                 <span class="dashicons dashicons-email-alt" style="margin-top: 4px;"></span>
-                                <?php echo esc_html__('Enviar Email de Prueba', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('Send Test Email', 'emailit-mailer'); ?>
                             </button>
                             <span id="emailit_test_result" style="margin-left: 10px;"></span>
                         </p>
                     </div>
                 </div>
 
-                <!-- Panel lateral con estadísticas -->
+                <!-- Sidebar with statistics -->
                 <div class="emailit-sidebar">
                     <div class="emailit-card emailit-stats-card">
                         <h3>
-                            <?php echo esc_html__('Estadísticas de Envío', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Sending Statistics', 'emailit-mailer'); ?>
                         </h3>
 
                         <div class="emailit-stat">
@@ -278,7 +278,7 @@ class Admin
                                 <?php echo esc_html(number_format_i18n($stats['sent'])); ?>
                             </span>
                             <span class="emailit-stat-label">
-                                <?php echo esc_html__('Enviados', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('Sent', 'emailit-mailer'); ?>
                             </span>
                         </div>
 
@@ -287,7 +287,7 @@ class Admin
                                 <?php echo esc_html(number_format_i18n($stats['failed'])); ?>
                             </span>
                             <span class="emailit-stat-label">
-                                <?php echo esc_html__('Fallidos', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('Failed', 'emailit-mailer'); ?>
                             </span>
                         </div>
 
@@ -296,33 +296,33 @@ class Admin
                                 <?php echo esc_html(number_format_i18n($stats['last_24h'])); ?>
                             </span>
                             <span class="emailit-stat-label">
-                                <?php echo esc_html__('Últimas 24h', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('Last 24h', 'emailit-mailer'); ?>
                             </span>
                         </div>
 
                         <p style="margin-top: 15px;">
                             <a href="<?php echo esc_url(admin_url('options-general.php?page=' . self::LOGS_SLUG)); ?>"
                                 class="button button-secondary">
-                                <?php echo esc_html__('Ver Logs', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('View Logs', 'emailit-mailer'); ?>
                             </a>
                         </p>
                     </div>
 
                     <div class="emailit-card">
                         <h3>
-                            <?php echo esc_html__('Enlaces Útiles', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Useful Links', 'emailit-mailer'); ?>
                         </h3>
                         <ul class="emailit-links-list">
                             <li>
                                 <a href="https://emailit.com" target="_blank" rel="noopener noreferrer">
                                     <span class="dashicons dashicons-external"></span>
-                                    <?php echo esc_html__('Panel de EmailIT', 'emailit-mailer'); ?>
+                                    <?php echo esc_html__('EmailIT Dashboard', 'emailit-mailer'); ?>
                                 </a>
                             </li>
                             <li>
                                 <a href="https://docs.emailit.com" target="_blank" rel="noopener noreferrer">
                                     <span class="dashicons dashicons-book"></span>
-                                    <?php echo esc_html__('Documentación API', 'emailit-mailer'); ?>
+                                    <?php echo esc_html__('API Documentation', 'emailit-mailer'); ?>
                                 </a>
                             </li>
                             <li>
@@ -340,7 +340,7 @@ class Admin
     }
 
     /**
-     * Renderiza la página de logs
+     * Renders the logs page
      */
     public function render_logs_page()
     {
@@ -348,13 +348,13 @@ class Admin
             return;
         }
 
-        // Obtener parámetros de paginación y filtrado
+        // Get pagination and filter parameters
         $per_page = 20;
         $page = isset($_GET['paged']) ? absint($_GET['paged']) : 1;
         $status = isset($_GET['status']) ? sanitize_text_field(wp_unslash($_GET['status'])) : '';
         $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
 
-        // Obtener logs
+        // Get logs
         $logs_data = $this->logger->get_logs(array(
             'per_page' => $per_page,
             'page' => $page,
@@ -366,43 +366,43 @@ class Admin
         $total = $logs_data['total'];
         $total_pages = ceil($total / $per_page);
 
-        // Estadísticas
+        // Statistics
         $stats = $this->logger->get_stats();
         ?>
         <div class="wrap emailit-admin-wrap">
             <h1>
                 <span class="dashicons dashicons-list-view"
                     style="font-size: 30px; width: 30px; height: 30px; margin-right: 10px;"></span>
-                <?php echo esc_html__('Registro de Emails', 'emailit-mailer'); ?>
+                <?php echo esc_html__('Email Logs', 'emailit-mailer'); ?>
             </h1>
 
-            <!-- Filtros -->
+            <!-- Filters -->
             <div class="emailit-logs-filters">
                 <form method="get">
                     <input type="hidden" name="page" value="<?php echo esc_attr(self::LOGS_SLUG); ?>">
 
                     <select name="status">
                         <option value="">
-                            <?php echo esc_html__('Todos los estados', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('All statuses', 'emailit-mailer'); ?>
                         </option>
                         <option value="sent" <?php selected($status, 'sent'); ?>>
-                            <?php echo esc_html__('Enviados', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Sent', 'emailit-mailer'); ?>
                         </option>
                         <option value="failed" <?php selected($status, 'failed'); ?>>
-                            <?php echo esc_html__('Fallidos', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Failed', 'emailit-mailer'); ?>
                         </option>
                     </select>
 
                     <input type="search" name="s" value="<?php echo esc_attr($search); ?>"
-                        placeholder="<?php echo esc_attr__('Buscar por email o asunto...', 'emailit-mailer'); ?>"
+                        placeholder="<?php echo esc_attr__('Search by email or subject...', 'emailit-mailer'); ?>"
                         class="regular-text">
 
-                    <?php submit_button(__('Filtrar', 'emailit-mailer'), 'secondary', 'filter', false); ?>
+                    <?php submit_button(__('Filter', 'emailit-mailer'), 'secondary', 'filter', false); ?>
 
                     <?php if (!empty($status) || !empty($search)): ?>
                         <a href="<?php echo esc_url(admin_url('options-general.php?page=' . self::LOGS_SLUG)); ?>"
                             class="button">
-                            <?php echo esc_html__('Limpiar Filtros', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Clear Filters', 'emailit-mailer'); ?>
                         </a>
                     <?php endif; ?>
                 </form>
@@ -410,25 +410,25 @@ class Admin
                 <div class="emailit-logs-actions">
                     <button type="button" id="emailit_clear_logs" class="button button-link-delete">
                         <span class="dashicons dashicons-trash" style="margin-top: 4px;"></span>
-                        <?php echo esc_html__('Eliminar Todos los Logs', 'emailit-mailer'); ?>
+                        <?php echo esc_html__('Delete All Logs', 'emailit-mailer'); ?>
                     </button>
                 </div>
             </div>
 
-            <!-- Resumen -->
+            <!-- Summary -->
             <div class="emailit-logs-summary">
                 <span class="emailit-badge">
                     <?php echo esc_html(sprintf(__('Total: %d', 'emailit-mailer'), $stats['total'])); ?>
                 </span>
                 <span class="emailit-badge emailit-badge-success">
-                    <?php echo esc_html(sprintf(__('Enviados: %d', 'emailit-mailer'), $stats['sent'])); ?>
+                    <?php echo esc_html(sprintf(__('Sent: %d', 'emailit-mailer'), $stats['sent'])); ?>
                 </span>
                 <span class="emailit-badge emailit-badge-error">
-                    <?php echo esc_html(sprintf(__('Fallidos: %d', 'emailit-mailer'), $stats['failed'])); ?>
+                    <?php echo esc_html(sprintf(__('Failed: %d', 'emailit-mailer'), $stats['failed'])); ?>
                 </span>
             </div>
 
-            <!-- Tabla de logs -->
+            <!-- Logs table -->
             <table class="wp-list-table widefat fixed striped emailit-logs-table">
                 <thead>
                     <tr>
@@ -436,19 +436,19 @@ class Admin
                             <?php echo esc_html__('ID', 'emailit-mailer'); ?>
                         </th>
                         <th scope="col" class="column-date" style="width: 150px;">
-                            <?php echo esc_html__('Fecha', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Date', 'emailit-mailer'); ?>
                         </th>
                         <th scope="col" class="column-to">
-                            <?php echo esc_html__('Destinatario', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Recipient', 'emailit-mailer'); ?>
                         </th>
                         <th scope="col" class="column-subject">
-                            <?php echo esc_html__('Asunto', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Subject', 'emailit-mailer'); ?>
                         </th>
                         <th scope="col" class="column-status" style="width: 100px;">
-                            <?php echo esc_html__('Estado', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Status', 'emailit-mailer'); ?>
                         </th>
                         <th scope="col" class="column-response">
-                            <?php echo esc_html__('Respuesta', 'emailit-mailer'); ?>
+                            <?php echo esc_html__('Response', 'emailit-mailer'); ?>
                         </th>
                     </tr>
                 </thead>
@@ -456,7 +456,7 @@ class Admin
                     <?php if (empty($logs)): ?>
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 20px;">
-                                <?php echo esc_html__('No se encontraron registros.', 'emailit-mailer'); ?>
+                                <?php echo esc_html__('No records found.', 'emailit-mailer'); ?>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -481,12 +481,12 @@ class Admin
                                     <?php if ('sent' === $log->status): ?>
                                         <span class="emailit-status emailit-status-success">
                                             <span class="dashicons dashicons-yes-alt"></span>
-                                            <?php echo esc_html__('Enviado', 'emailit-mailer'); ?>
+                                            <?php echo esc_html__('Sent', 'emailit-mailer'); ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="emailit-status emailit-status-error">
                                             <span class="dashicons dashicons-warning"></span>
-                                            <?php echo esc_html__('Fallido', 'emailit-mailer'); ?>
+                                            <?php echo esc_html__('Failed', 'emailit-mailer'); ?>
                                         </span>
                                     <?php endif; ?>
                                 </td>
@@ -497,7 +497,7 @@ class Admin
                                     <?php if (strlen($log->response) > 80): ?>
                                         <button type="button" class="button-link emailit-view-response"
                                             data-response="<?php echo esc_attr($log->response); ?>">
-                                            <?php echo esc_html__('Ver más', 'emailit-mailer'); ?>
+                                            <?php echo esc_html__('View more', 'emailit-mailer'); ?>
                                         </button>
                                     <?php endif; ?>
                                 </td>
@@ -507,12 +507,12 @@ class Admin
                 </tbody>
             </table>
 
-            <!-- Paginación -->
+            <!-- Pagination -->
             <?php if ($total_pages > 1): ?>
                 <div class="tablenav bottom">
                     <div class="tablenav-pages">
                         <span class="displaying-num">
-                            <?php echo esc_html(sprintf(_n('%s elemento', '%s elementos', $total, 'emailit-mailer'), number_format_i18n($total))); ?>
+                            <?php echo esc_html(sprintf(_n('%s item', '%s items', $total, 'emailit-mailer'), number_format_i18n($total))); ?>
                         </span>
                         <?php
                         echo paginate_links(array(
@@ -529,12 +529,12 @@ class Admin
             <?php endif; ?>
         </div>
 
-        <!-- Modal para ver respuesta completa -->
+        <!-- Modal for viewing complete response -->
         <div id="emailit-response-modal" class="emailit-modal" style="display: none;">
             <div class="emailit-modal-content">
                 <span class="emailit-modal-close">&times;</span>
                 <h3>
-                    <?php echo esc_html__('Respuesta Completa', 'emailit-mailer'); ?>
+                    <?php echo esc_html__('Complete Response', 'emailit-mailer'); ?>
                 </h3>
                 <pre id="emailit-modal-response"></pre>
             </div>
@@ -543,26 +543,26 @@ class Admin
     }
 
     /**
-     * Handler AJAX para prueba de conexión
+     * AJAX handler for connection test
      */
     public function ajax_test_connection()
     {
-        // Verificar nonce
+        // Verify nonce
         check_ajax_referer('emailit_admin_nonce', 'nonce');
 
-        // Verificar capacidades
+        // Check capabilities
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('No tiene permisos para realizar esta acción.', 'emailit-mailer')));
+            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'emailit-mailer')));
         }
 
-        // Obtener email de prueba
+        // Get test email
         $test_email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
 
         if (empty($test_email) || !is_email($test_email)) {
-            wp_send_json_error(array('message' => __('Por favor ingrese un email válido.', 'emailit-mailer')));
+            wp_send_json_error(array('message' => __('Please enter a valid email address.', 'emailit-mailer')));
         }
 
-        // Obtener instancia de API
+        // Get API instance
         $plugin = emailit_mailer();
         $result = $plugin->api->test_connection($test_email);
 
@@ -570,28 +570,28 @@ class Admin
             wp_send_json_error(array('message' => $result->get_error_message()));
         }
 
-        wp_send_json_success(array('message' => __('¡Email de prueba enviado exitosamente! Revise su bandeja de entrada.', 'emailit-mailer')));
+        wp_send_json_success(array('message' => __('Test email sent successfully! Check your inbox.', 'emailit-mailer')));
     }
 
     /**
-     * Handler AJAX para limpiar logs
+     * AJAX handler for clearing logs
      */
     public function ajax_clear_logs()
     {
-        // Verificar nonce
+        // Verify nonce
         check_ajax_referer('emailit_admin_nonce', 'nonce');
 
-        // Verificar capacidades
+        // Check capabilities
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('No tiene permisos para realizar esta acción.', 'emailit-mailer')));
+            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'emailit-mailer')));
         }
 
         $result = $this->logger->clear_all_logs();
 
         if (false === $result) {
-            wp_send_json_error(array('message' => __('Error al eliminar los logs.', 'emailit-mailer')));
+            wp_send_json_error(array('message' => __('Error deleting logs.', 'emailit-mailer')));
         }
 
-        wp_send_json_success(array('message' => __('Todos los logs han sido eliminados.', 'emailit-mailer')));
+        wp_send_json_success(array('message' => __('All logs have been deleted.', 'emailit-mailer')));
     }
 }
